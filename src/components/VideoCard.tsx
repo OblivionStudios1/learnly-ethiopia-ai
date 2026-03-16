@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Heart, MessageCircle, Bookmark, Share2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface Video {
@@ -34,24 +33,6 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const checkIfSaved = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data } = await supabase
-        .from("saved_videos")
-        .select("id")
-        .eq("user_id", session.user.id)
-        .eq("video_id", video.id)
-        .maybeSingle();
-
-      setIsSaved(!!data);
-    };
-
-    checkIfSaved();
-  }, [video.id]);
-
-  useEffect(() => {
     if (videoRef.current) {
       if (isActive) {
         videoRef.current.currentTime = 0;
@@ -60,7 +41,6 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
         setIsPaused(false);
         videoRef.current.muted = false;
         videoRef.current.play().catch(() => {
-          // Autoplay failed, try muted first
           videoRef.current!.muted = true;
           videoRef.current!.play();
         });
@@ -89,43 +69,12 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
     }
   };
 
-  const handleSaveToggle = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        title: "Login required",
-        description: "Please login to save videos",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isSaved) {
-      await supabase
-        .from("saved_videos")
-        .delete()
-        .eq("user_id", session.user.id)
-        .eq("video_id", video.id);
-      
-      toast({
-        title: "Removed from saved",
-        description: "Video removed from your saved list",
-      });
-    } else {
-      await supabase
-        .from("saved_videos")
-        .insert({
-          user_id: session.user.id,
-          video_id: video.id,
-        });
-      
-      toast({
-        title: "Saved!",
-        description: "Video added to your saved list",
-      });
-    }
-
+  const handleSaveToggle = () => {
     setIsSaved(!isSaved);
+    toast({
+      title: isSaved ? "Removed from saved" : "Saved!",
+      description: isSaved ? "Video removed from your saved list" : "Video added to your saved list (demo)",
+    });
   };
 
   const formatNumber = (num: number) => {
@@ -137,7 +86,6 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
 
   return (
     <div className="relative w-full h-full bg-background">
-      {/* Video Player */}
       {video.video_url ? (
         <div className="relative w-full h-full" onClick={handleVideoClick}>
           <video
@@ -152,14 +100,12 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
             onCanPlay={() => setIsBuffering(false)}
           />
           
-          {/* Buffering indicator */}
           {isBuffering && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20">
               <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin" />
             </div>
           )}
           
-          {/* Pause indicator */}
           {isPaused && !isBuffering && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-20 h-20 bg-black/50 rounded-full flex items-center justify-center">
@@ -175,7 +121,6 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
         />
       )}
       
-      {/* Progress bar */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-background/20">
         <div 
           className="h-full bg-primary transition-all duration-100"
@@ -185,9 +130,7 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
       
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
-      {/* Content Overlay */}
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-24 pointer-events-none">
-        {/* Top badges */}
         <div className="flex gap-2 justify-end pointer-events-auto">
           <Badge variant="secondary" className="bg-black/50 text-white border-0">
             Grade {video.grade}
@@ -200,9 +143,7 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
           )}
         </div>
 
-        {/* Bottom content */}
         <div className="space-y-3 pointer-events-auto">
-          {/* Video info */}
           <div className="space-y-1 animate-slide-up max-w-[70%]">
             <h2 className="text-white text-xl font-bold drop-shadow-lg line-clamp-2">
               {video.title}
@@ -212,7 +153,6 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
             </p>
           </div>
 
-          {/* Action buttons */}
           <div className="flex items-end justify-between gap-4">
             {videoEnded && (
               <Button
@@ -224,7 +164,6 @@ const VideoCard = ({ video, isActive, onAskAI }: VideoCardProps) => {
               </Button>
             )}
 
-            {/* Engagement buttons */}
             <div className="flex flex-col gap-4">
               <button
                 onClick={(e) => {

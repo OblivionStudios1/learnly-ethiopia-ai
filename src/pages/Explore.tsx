@@ -33,16 +33,6 @@ const Explore = () => {
   const [videoCounts, setVideoCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/auth');
-      }
-    };
-    checkSession();
-  }, [navigate]);
-
-  useEffect(() => {
     const fetchVideoCounts = async () => {
       const { data: videos } = await supabase
         .from('videos')
@@ -74,16 +64,17 @@ const Explore = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 pb-20">
       <div className="max-w-2xl mx-auto p-4 space-y-6">
-        {/* Header */}
         <div className="pt-6 space-y-4 animate-slide-up">
-          <div>
-            <h1 className="text-3xl font-bold">Explore</h1>
-            <p className="text-muted-foreground">
-              Discover content by subject and grade
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Explore</h1>
+              <p className="text-muted-foreground">
+                Discover content by subject and grade
+              </p>
+            </div>
+            <Badge variant="secondary" className="text-xs">Demo Mode</Badge>
           </div>
 
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
@@ -95,7 +86,6 @@ const Explore = () => {
           </div>
         </div>
 
-        {/* Trending Topics */}
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -114,7 +104,6 @@ const Explore = () => {
           </div>
         </div>
 
-        {/* Subjects Grid */}
         <div className="space-y-3 animate-slide-up">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-primary" />
@@ -143,7 +132,6 @@ const Explore = () => {
           </div>
         </div>
 
-        {/* Grade Filter */}
         <div className="space-y-3 animate-fade-in">
           <h2 className="font-semibold">Filter by Grade</h2>
           <div className="flex flex-wrap gap-2">

@@ -3,22 +3,20 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import VideoCard from "@/components/VideoCard";
 import BottomNav from "@/components/BottomNav";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [userGrade, setUserGrade] = useState<number | null>(null);
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
 
-  // Pause all videos when navigating away from Home
   useEffect(() => {
     return () => {
-      // Cleanup: pause all videos when component unmounts
       const allVideos = document.querySelectorAll('video');
       allVideos.forEach(video => {
         video.pause();
@@ -28,64 +26,26 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const loadUserData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/auth');
-        return;
-      }
-
-      const { data: existingStats } = await supabase
-        .from('user_stats')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (!existingStats) {
-        await supabase.from('user_stats').insert({ user_id: session.user.id });
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('grade')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profileError || !profile?.grade) {
-        navigate('/onboarding');
-        return;
-      }
-
-      setUserGrade(profile.grade);
-
-      // Get filters from navigation state if they exist
+    const loadVideos = async () => {
       const filterSubject = location.state?.filterSubject;
       const filterGrade = location.state?.filterGrade;
 
-      let query = supabase
-        .from('videos')
-        .select('*');
+      let query = supabase.from('videos').select('*');
 
-      // Apply grade filter only if explicitly set from Explore page
       if (filterGrade) {
         query = query.eq('grade', filterGrade);
       }
-      // Otherwise show videos from all grades
-
-      // Apply subject filter if provided
       if (filterSubject) {
         query = query.eq('subject', filterSubject);
       }
 
       const { data: videosData } = await query.order('created_at', { ascending: false });
-
       setVideos(videosData || []);
       setLoading(false);
     };
 
-    loadUserData();
-  }, [navigate, location.state]);
+    loadVideos();
+  }, [location.state]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -122,13 +82,7 @@ const Home = () => {
   }, [currentIndex]);
 
   const handleAskAI = (video: any) => {
-    navigate('/ask-ai', {
-      state: { video }
-    });
-  };
-
-  const handleVideoClick = (videoId: string) => {
-    navigate(`/watch?id=${videoId}`);
+    navigate('/ask-ai', { state: { video } });
   };
 
   if (loading) {
@@ -144,6 +98,7 @@ const Home = () => {
   if (videos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-8 animate-fade-in">
+        <Badge variant="outline" className="mb-4 text-xs">Demo Mode</Badge>
         <div className="text-6xl mb-4 animate-bounce-in">📚</div>
         <h2 className="text-2xl font-bold mb-2">No videos available</h2>
         <p className="text-muted-foreground text-center">
@@ -162,6 +117,12 @@ const Home = () => {
       onWheel={handleWheel}
       className="h-screen overflow-hidden snap-y snap-mandatory bg-background"
     >
+      {/* Demo Mode Badge */}
+      <div className="fixed top-4 left-4 z-50">
+        <Badge variant="secondary" className="bg-primary/90 text-primary-foreground text-xs">
+          Demo Mode
+        </Badge>
+      </div>
       {videos.map((video, index) => (
         <div
           key={video.id}
