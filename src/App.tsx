@@ -9,6 +9,7 @@ import Explore from "./pages/Explore";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import WatchVideo from "./pages/WatchVideo";
+import NationalExam from "./pages/NationalExam";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/watch" element={<WatchVideo />} />
+          <Route path="/national-exam" element={<NationalExam />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
