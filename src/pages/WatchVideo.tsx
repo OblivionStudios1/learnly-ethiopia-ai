@@ -44,74 +44,24 @@ const WatchVideo = () => {
 
       setVideo(data);
       setLikes(data.likes || 0);
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: savedData } = await supabase
-          .from("saved_videos")
-          .select("id")
-          .eq("user_id", session.user.id)
-          .eq("video_id", videoId)
-          .single();
-
-        setIsSaved(!!savedData);
-      }
-
       setLoading(false);
     };
 
     fetchVideo();
   }, [videoId, navigate, toast]);
 
-  const handleSaveToggle = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        title: "Login required",
-        description: "Please login to save videos",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isSaved) {
-      await supabase
-        .from("saved_videos")
-        .delete()
-        .eq("user_id", session.user.id)
-        .eq("video_id", videoId);
-
-      toast({
-        title: "Removed from saved",
-        description: "Video removed from your saved list",
-      });
-    } else {
-      await supabase
-        .from("saved_videos")
-        .insert({
-          user_id: session.user.id,
-          video_id: videoId,
-        });
-
-      toast({
-        title: "Saved!",
-        description: "Video added to your saved list",
-      });
-    }
-
-    setIsSaved(!isSaved);
-  };
-
-  const handleLike = async () => {
+  const handleLike = () => {
     const newLiked = !isLiked;
     setIsLiked(newLiked);
-    const newLikes = likes + (newLiked ? 1 : -1);
-    setLikes(newLikes);
+    setLikes(prev => prev + (newLiked ? 1 : -1));
+  };
 
-    await supabase
-      .from("videos")
-      .update({ likes: newLikes })
-      .eq("id", videoId);
+  const handleSaveToggle = () => {
+    setIsSaved(!isSaved);
+    toast({
+      title: isSaved ? "Removed from saved" : "Saved!",
+      description: isSaved ? "Video removed from your saved list" : "Video added to your saved list",
+    });
   };
 
   const handleAskAI = () => {
@@ -141,6 +91,7 @@ const WatchVideo = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-semibold truncate flex-1">{video.title}</h1>
+          <Badge variant="secondary" className="text-xs">Demo</Badge>
         </div>
 
         <div className="aspect-video w-full bg-black">

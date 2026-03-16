@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 
 const AskAI = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const video = location.state?.video;
   const { toast } = useToast();
   
@@ -26,37 +25,12 @@ const AskAI = () => {
     setResponse("");
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      // Check subscription plan for AI access
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("subscription_plan")
-        .eq("id", session.user.id)
-        .single();
-
-      if (!profile || profile.subscription_plan === "basic") {
-        toast({
-          title: "Upgrade Required",
-          description: "AI assistance is only available for Pro and Premium users. Please upgrade your plan.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
       const { data, error } = await supabase.functions.invoke("ask-ai", {
         body: {
           question: question,
           subject: video?.subject,
           grade: video?.grade,
-          userId: session.user.id,
-          subscriptionPlan: profile.subscription_plan,
+          subscriptionPlan: "premium",
           videoContext: video ? {
             title: video.title,
             subject: video.subject,
@@ -79,41 +53,6 @@ const AskAI = () => {
 
       if (data?.response) {
         setResponse(data.response);
-        
-        // Save question to database
-        await supabase.from("ai_questions").insert({
-          user_id: session.user.id,
-          question: question,
-          response: data.response,
-          subject: video?.subject,
-          grade: video?.grade,
-        });
-
-        // Update user stats (create if doesn't exist)
-        let currentStats = await supabase
-          .from("user_stats")
-          .select("questions_asked, xp_points")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        if (!currentStats.data) {
-          await supabase.from("user_stats").insert({ user_id: session.user.id });
-          currentStats = await supabase
-            .from("user_stats")
-            .select("questions_asked, xp_points")
-            .eq("user_id", session.user.id)
-            .single();
-        }
-
-        if (currentStats.data) {
-          await supabase
-            .from("user_stats")
-            .update({
-              questions_asked: currentStats.data.questions_asked + 1,
-              xp_points: currentStats.data.xp_points + 50,
-            })
-            .eq("user_id", session.user.id);
-        }
       } else {
         toast({
           title: "Error",
@@ -133,7 +72,6 @@ const AskAI = () => {
     }
   };
 
-  // Format response to handle markdown bold
   const formatResponse = (text: string) => {
     return text.split(/(\*\*[^*]+\*\*)/).map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
@@ -146,7 +84,6 @@ const AskAI = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 pb-20">
       <div className="max-w-2xl mx-auto p-4 space-y-6">
-        {/* Header */}
         <div className="pt-6 space-y-4 animate-slide-up">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-elegant">
@@ -158,6 +95,7 @@ const AskAI = () => {
                 Get instant help with your studies
               </p>
             </div>
+            <Badge variant="secondary" className="ml-auto text-xs">Demo Mode</Badge>
           </div>
 
           {video && (
@@ -183,7 +121,6 @@ const AskAI = () => {
           )}
         </div>
 
-        {/* Question Input */}
         <Card className="p-4 space-y-4 shadow-card animate-fade-in">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
@@ -217,7 +154,6 @@ const AskAI = () => {
           </Button>
         </Card>
 
-        {/* AI Response */}
         {response && (
           <Card className="p-6 space-y-4 shadow-card animate-slide-up bg-gradient-to-br from-primary/5 to-transparent">
             <div className="flex items-center gap-2">
@@ -233,7 +169,6 @@ const AskAI = () => {
           </Card>
         )}
 
-        {/* Quick prompts */}
         {!response && (
           <div className="space-y-3 animate-fade-in">
             <p className="text-sm font-medium text-muted-foreground">Quick prompts:</p>
