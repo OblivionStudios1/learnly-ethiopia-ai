@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, TrendingUp, Search } from "lucide-react";
+import { BookOpen, TrendingUp, Search, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,8 @@ const TRENDING_TOPICS = [
   "Chemical Reactions",
   "Climate Change",
 ];
+
+const NATIONAL_EXAM_GRADES = [6, 8];
 
 const Explore = () => {
   const navigate = useNavigate();
@@ -61,6 +63,8 @@ const Explore = () => {
     setSelectedGrade(grade === selectedGrade ? null : grade);
   };
 
+  const showNationalExamSection = selectedGrade !== null && NATIONAL_EXAM_GRADES.includes(selectedGrade);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 pb-20">
       <div className="max-w-2xl mx-auto p-4 space-y-6">
@@ -86,6 +90,55 @@ const Explore = () => {
           </div>
         </div>
 
+        {/* Grade Filter */}
+        <div className="space-y-3 animate-fade-in">
+          <h2 className="font-semibold">Filter by Grade</h2>
+          <div className="flex flex-wrap gap-2">
+            {[6, 7, 8, 9, 10, 11, 12].map((grade) => (
+              <button
+                key={grade}
+                onClick={() => handleGradeClick(grade)}
+                className={`px-4 py-2 rounded-lg border-2 transition-all font-medium ${
+                  selectedGrade === grade
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border hover:border-primary hover:bg-primary/10'
+                }`}
+              >
+                Grade {grade}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* National Exam Practice Section */}
+        {showNationalExamSection && (
+          <div className="space-y-3 animate-slide-up">
+            <Card 
+              className="p-5 shadow-card border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5 cursor-pointer hover:shadow-xl transition-all hover:scale-[1.02]"
+              onClick={() => navigate('/national-exam', { state: { grade: selectedGrade } })}
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-elegant flex-shrink-0">
+                  <GraduationCap className="w-7 h-7 text-primary-foreground" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold">National Exam Practice</h3>
+                    <Badge variant="secondary" className="text-xs">Grade {selectedGrade}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Practice using past Ethiopian Ministry National Exams to prepare for the national assessment.
+                  </p>
+                  <p className="text-xs text-primary font-medium mt-2">
+                    Tap to browse exams by year →
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Trending Topics */}
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -104,6 +157,7 @@ const Explore = () => {
           </div>
         </div>
 
+        {/* Subjects Grid */}
         <div className="space-y-3 animate-slide-up">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-primary" />
@@ -128,25 +182,6 @@ const Explore = () => {
                   </div>
                 </div>
               </Card>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-3 animate-fade-in">
-          <h2 className="font-semibold">Filter by Grade</h2>
-          <div className="flex flex-wrap gap-2">
-            {[7, 8, 9, 10, 11, 12].map((grade) => (
-              <button
-                key={grade}
-                onClick={() => handleGradeClick(grade)}
-                className={`px-4 py-2 rounded-lg border-2 transition-all font-medium ${
-                  selectedGrade === grade
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border hover:border-primary hover:bg-primary/10'
-                }`}
-              >
-                Grade {grade}
-              </button>
             ))}
           </div>
         </div>
