@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, subject, grade, videoContext, userId, subscriptionPlan } = await req.json();
+    const { question, subject, grade, videoContext, userId, subscriptionPlan = "premium" } = await req.json();
     
     if (!question) {
       return new Response(
