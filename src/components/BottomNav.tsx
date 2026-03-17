@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Compass, Sparkles, User, Upload } from "lucide-react";
+import { Home, GraduationCap, Compass, Sparkles, User, Upload } from "lucide-react";
 import UploadVideoDialog from "@/components/UploadVideoDialog";
 
 const BottomNav = () => {
