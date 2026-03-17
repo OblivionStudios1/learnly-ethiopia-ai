@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Compass, Sparkles, User, Upload } from "lucide-react";
+import { Home, GraduationCap, Compass, Sparkles, User, Upload } from "lucide-react";
 import UploadVideoDialog from "@/components/UploadVideoDialog";
 
 const BottomNav = () => {
@@ -10,6 +10,7 @@ const BottomNav = () => {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/home" },
+    { icon: GraduationCap, label: "Exams", path: "/national-exam" },
     { icon: Compass, label: "Explore", path: "/explore" },
     { icon: Upload, label: "Upload", path: "upload" },
     { icon: Sparkles, label: "Ask AI", path: "/ask-ai" },
