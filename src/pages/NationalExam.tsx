@@ -284,7 +284,7 @@ const NationalExam = () => {
   const [examFinished, setExamFinished] = useState(false);
 
   const subjects = SUBJECTS_BY_GRADE[selectedGrade] || SUBJECTS_BY_GRADE[8];
-  const questions = selectedSubject ? (DEMO_QUESTIONS[selectedSubject] || []) : [];
+  const questions = (selectedSubject && selectedYear) ? getQuestionsForExam(selectedSubject, selectedYear, selectedGrade) : [];
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleYearSelect = (year: number) => {
