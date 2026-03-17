@@ -449,7 +449,7 @@ const NationalExam = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold">{subject}</h3>
-                        <p className="text-xs text-muted-foreground">5 questions</p>
+                        <p className="text-xs text-muted-foreground">10 questions</p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
