@@ -10,6 +10,7 @@ const BottomNav = () => {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/home" },
+    { icon: GraduationCap, label: "Exams", path: "/national-exam" },
     { icon: Compass, label: "Explore", path: "/explore" },
     { icon: Upload, label: "Upload", path: "upload" },
     { icon: Sparkles, label: "Ask AI", path: "/ask-ai" },
