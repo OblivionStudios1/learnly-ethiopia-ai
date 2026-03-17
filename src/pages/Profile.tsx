@@ -11,9 +11,11 @@ const Profile = () => {
   const navigate = useNavigate();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
+  const demoGrade = parseInt(localStorage.getItem("demo_grade") || "10");
+
   const demoUser = {
     username: "DemoUser",
-    grade: 10,
+    grade: demoGrade,
     subjects: ["Mathematics", "Physics", "Biology"],
   };
 
@@ -47,6 +49,17 @@ const Profile = () => {
                     <Badge variant="secondary" className="text-xs">Demo</Badge>
                   </div>
                   <p className="text-muted-foreground">Grade {demoUser.grade}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-primary p-0 h-auto"
+                    onClick={() => {
+                      localStorage.removeItem("demo_grade");
+                      navigate("/home");
+                    }}
+                  >
+                    Change Grade
+                  </Button>
                 </div>
               </div>
               <Button
@@ -87,6 +100,16 @@ const Profile = () => {
             </Card>
           ))}
         </div>
+
+        {/* Leaderboard Button */}
+        <Button
+          onClick={() => setShowLeaderboard(true)}
+          variant="outline"
+          className="w-full flex items-center gap-2 hover:scale-105 transition-all"
+        >
+          <Trophy className="w-5 h-5 text-yellow-500" />
+          View Leaderboard
+        </Button>
 
         <div className="space-y-3 animate-slide-up">
           <div className="flex items-center gap-2">
