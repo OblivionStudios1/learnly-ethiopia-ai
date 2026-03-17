@@ -355,7 +355,8 @@ type ViewMode = "years" | "subjects" | "exam";
 const NationalExam = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const gradeFromState = location.state?.grade || 8;
+  const storedGrade = parseInt(localStorage.getItem("demo_grade") || "8");
+  const gradeFromState = location.state?.grade || (storedGrade === 6 || storedGrade === 8 ? storedGrade : 8);
   
   const [selectedGrade, setSelectedGrade] = useState<number>(gradeFromState);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
