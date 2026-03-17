@@ -29,20 +29,12 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
   const [videoPreview, setVideoPreview] = useState<string>("");
 
   const subjects = [
-    "Mathematics",
-    "English",
-    "Amharic",
-    "General Science",
-    "Social Studies",
-    "ICT",
-    "Biology",
-    "Chemistry",
-    "Physics",
-    "Geography",
-    "History",
+    "Mathematics", "English", "Amharic", "General Science",
+    "Social Studies", "ICT", "Biology", "Chemistry",
+    "Physics", "Geography", "History",
   ];
 
-  const grades = Array.from({ length: 12 }, (_, i) => i + 1);
+  const grades = [6, 7, 8, 9, 10, 11, 12];
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,55 +76,12 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
     setUploadProgress(0);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      const userId = session.user.id;
-
-      // Check subscription plan and upload limits
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("subscription_plan, last_upload_date, upload_count_today")
-        .eq("id", userId)
-        .single();
-
-      if (!profile || profile.subscription_plan === "basic") {
-        toast({
-          title: "Upgrade Required",
-          description: "Basic plan users cannot upload videos. Please upgrade to Pro or Premium.",
-          variant: "destructive",
-        });
-        setUploading(false);
-        return;
-      }
-
-      // Check daily upload limit for Pro users
-      if (profile.subscription_plan === "pro") {
-        const today = new Date().toISOString().split('T')[0];
-        const lastUploadDate = profile.last_upload_date;
-        const uploadCount = profile.upload_count_today || 0;
-
-        if (lastUploadDate === today && uploadCount >= 1) {
-          toast({
-            title: "Daily Limit Reached",
-            description: "Pro users can upload 1 video per day. Upgrade to Premium for unlimited uploads.",
-            variant: "destructive",
-          });
-          setUploading(false);
-          return;
-        }
-      }
       const timestamp = Date.now();
-      
-      console.log("Starting video upload...", { fileName: videoFile.name, size: videoFile.size });
-      
+      const demoUserId = "demo-user";
+
       setUploadProgress(20);
-      const videoPath = `${userId}/${timestamp}_${videoFile.name}`;
-      
-      // Simulated chunked upload with progress updates
+      const videoPath = `${demoUserId}/${timestamp}_${videoFile.name}`;
+
       const simulateProgress = setInterval(() => {
         setUploadProgress(prev => {
           if (prev < 60) return prev + 5;
@@ -153,15 +102,13 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
         console.error("Video upload error:", videoError);
         throw videoError;
       }
-      
-      console.log("Video uploaded successfully");
+
       setUploadProgress(70);
 
       const { data: videoUrl } = supabase.storage
         .from("videos")
         .getPublicUrl(videoPath);
 
-      console.log("Creating database entry...");
       setUploadProgress(85);
 
       const { error: dbError } = await supabase
@@ -172,7 +119,7 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
           grade: parseInt(formData.grade),
           video_url: videoUrl.publicUrl,
           thumbnail: null,
-          creator_id: userId,
+          creator_id: null,
           ai_generated: false,
         });
 
@@ -180,30 +127,8 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
         console.error("Database error:", dbError);
         throw dbError;
       }
-      
-      console.log("Upload complete!");
+
       setUploadProgress(100);
-
-      // Update upload count
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      if (currentSession) {
-        const { data: currentProfile } = await supabase
-          .from("profiles")
-          .select("subscription_plan, last_upload_date, upload_count_today")
-          .eq("id", currentSession.user.id)
-          .single();
-
-        const today = new Date().toISOString().split('T')[0];
-        const isNewDay = currentProfile?.last_upload_date !== today;
-
-        await supabase
-          .from("profiles")
-          .update({
-            last_upload_date: today,
-            upload_count_today: isNewDay ? 1 : (currentProfile?.upload_count_today || 0) + 1,
-          })
-          .eq("id", currentSession.user.id);
-      }
 
       toast({
         title: "Success!",

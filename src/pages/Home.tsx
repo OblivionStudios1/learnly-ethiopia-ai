@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import VideoCard from "@/components/VideoCard";
 import BottomNav from "@/components/BottomNav";
+import GradeSelector from "@/components/GradeSelector";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,8 +13,19 @@ const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [demoGrade, setDemoGrade] = useState<number | null>(null);
+  const [gradeChecked, setGradeChecked] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
+
+  // Check if grade was already selected this session
+  useEffect(() => {
+    const stored = localStorage.getItem("demo_grade");
+    if (stored) {
+      setDemoGrade(parseInt(stored));
+    }
+    setGradeChecked(true);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -26,6 +38,8 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    if (!demoGrade) return;
+
     const loadVideos = async () => {
       const filterSubject = location.state?.filterSubject;
       const filterGrade = location.state?.filterGrade;
@@ -34,6 +48,8 @@ const Home = () => {
 
       if (filterGrade) {
         query = query.eq('grade', filterGrade);
+      } else {
+        query = query.eq('grade', demoGrade);
       }
       if (filterSubject) {
         query = query.eq('subject', filterSubject);
@@ -45,7 +61,12 @@ const Home = () => {
     };
 
     loadVideos();
-  }, [location.state]);
+  }, [location.state, demoGrade]);
+
+  const handleGradeSelected = (grade: number) => {
+    setDemoGrade(grade);
+    setLoading(true);
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -85,7 +106,12 @@ const Home = () => {
     navigate('/ask-ai', { state: { video } });
   };
 
-  if (loading) {
+  // Show grade selector if no grade chosen yet
+  if (gradeChecked && !demoGrade) {
+    return <GradeSelector onGradeSelected={handleGradeSelected} />;
+  }
+
+  if (!gradeChecked || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-bounce-in">
@@ -102,7 +128,7 @@ const Home = () => {
         <div className="text-6xl mb-4 animate-bounce-in">📚</div>
         <h2 className="text-2xl font-bold mb-2">No videos available</h2>
         <p className="text-muted-foreground text-center">
-          Be the first to upload educational content!
+          No videos for Grade {demoGrade} yet. Try exploring other grades!
         </p>
         <BottomNav />
       </div>
@@ -118,9 +144,20 @@ const Home = () => {
       className="h-screen overflow-hidden snap-y snap-mandatory bg-background"
     >
       {/* Demo Mode Badge */}
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-4 left-4 z-50 flex gap-2">
         <Badge variant="secondary" className="bg-primary/90 text-primary-foreground text-xs">
           Demo Mode
+        </Badge>
+        <Badge
+          variant="outline"
+          className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
+          onClick={() => {
+            localStorage.removeItem("demo_grade");
+            setDemoGrade(null);
+            setLoading(true);
+          }}
+        >
+          Grade {demoGrade} ✕
         </Badge>
       </div>
       {videos.map((video, index) => (
