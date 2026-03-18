@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can insert videos" ON public.videos FOR INSERT TO public WITH CHECK (true);
