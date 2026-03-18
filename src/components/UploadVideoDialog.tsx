@@ -34,7 +34,7 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
     "Physics", "Geography", "History",
   ];
 
-  const grades = [6, 7, 8, 9, 10, 11, 12];
+  const grades = ["All", 6, 7, 8, 9, 10, 11, 12] as const;
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
