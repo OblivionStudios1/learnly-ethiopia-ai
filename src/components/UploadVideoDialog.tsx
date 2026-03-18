@@ -203,8 +203,8 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {grades.map((grade) => (
-                    <SelectItem key={grade} value={grade.toString()}>
-                      Grade {grade}
+                    <SelectItem key={String(grade)} value={String(grade)}>
+                      {grade === "All" ? "All Grades" : `Grade ${grade}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
