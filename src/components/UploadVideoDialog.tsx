@@ -116,7 +116,7 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
         .insert({
           title: formData.title,
           subject: formData.subject,
-          grade: parseInt(formData.grade),
+          grade: formData.grade === "All" ? 0 : parseInt(formData.grade),
           video_url: videoUrl.publicUrl,
           thumbnail: null,
           creator_id: null,
