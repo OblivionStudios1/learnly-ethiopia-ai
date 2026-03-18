@@ -34,7 +34,7 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
     "Physics", "Geography", "History",
   ];
 
-  const grades = [6, 7, 8, 9, 10, 11, 12];
+  const grades = ["All", 6, 7, 8, 9, 10, 11, 12] as const;
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,7 +116,7 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
         .insert({
           title: formData.title,
           subject: formData.subject,
-          grade: parseInt(formData.grade),
+          grade: formData.grade === "All" ? 0 : parseInt(formData.grade),
           video_url: videoUrl.publicUrl,
           thumbnail: null,
           creator_id: null,
@@ -203,8 +203,8 @@ const UploadVideoDialog = ({ open, onOpenChange }: UploadVideoDialogProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   {grades.map((grade) => (
-                    <SelectItem key={grade} value={grade.toString()}>
-                      Grade {grade}
+                    <SelectItem key={String(grade)} value={String(grade)}>
+                      {grade === "All" ? "All Grades" : `Grade ${grade}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
