@@ -47,9 +47,9 @@ const Home = () => {
       let query = supabase.from('videos').select('*');
 
       if (filterGrade) {
-        query = query.eq('grade', filterGrade);
+        query = query.in('grade', [filterGrade, 0]);
       } else {
-        query = query.eq('grade', demoGrade);
+        query = query.in('grade', [demoGrade, 0]);
       }
       if (filterSubject) {
         query = query.eq('subject', filterSubject);
